@@ -75,7 +75,59 @@ ollama serve
 
 ## 🎯 Usage
 
-### Command Line Interface
+### Enhanced Shell Script Interface 🚀
+
+We've added a powerful shell script `analyze_or_test.sh` that provides an enhanced interface with additional features:
+
+```bash
+# Make script executable (first time only)
+chmod +x analyze_or_test.sh
+
+# Show all available commands and options
+./analyze_or_test.sh --help
+```
+
+#### Quick Start with Shell Script
+
+```bash
+# Analyze a file (security + clean code)
+./analyze_or_test.sh analyze src/coding_agent.py
+
+# Security analysis only
+./analyze_or_test.sh analyze samples/vulnerable_app.py --security
+
+# Generate TDD tests
+./analyze_or_test.sh test src/cli.py --framework pytest --output test_cli.py
+
+# Interactive mode (recommended for beginners)
+./analyze_or_test.sh interactive
+
+# Analyze entire project
+./analyze_or_test.sh project .
+
+# Batch analyze multiple files
+./analyze_or_test.sh batch src/*.py samples/*.py
+
+# Watch directory for changes and auto-analyze
+./analyze_or_test.sh watch src/
+
+# Compare security analysis of two files
+./analyze_or_test.sh compare old_version.py new_version.py
+```
+
+#### Shell Script Features
+
+- 🎨 **Colored output** for better readability
+- 🔍 **Interactive mode** with guided menus
+- 📦 **Batch processing** of multiple files
+- 👁️ **Directory watching** for continuous monitoring
+- ⚖️ **File comparison** for version analysis
+- ✅ **Automatic dependency checking**
+- 🚀 **Auto-start Ollama** if not running
+- 📊 **Progress tracking** for batch operations
+- 🛡️ **Enhanced error handling** and validation
+
+### Command Line Interface (Direct Python)
 
 #### 1. Analyze a Single File
 ```bash
@@ -103,11 +155,26 @@ python src/cli.py test --file main.py
 
 #### 3. Analyze Entire Project
 ```bash
-# Analyze all code files in project
-python src/cli.py project --project ./my-app
+# Use the enhanced shell script for analysis
+./analyze_or_test.sh analyze src/coding_agent.py --security --clean-code
 
-# Get summary of security issues across project
-python src/cli.py project --project ./backend
+# Generate TDD tests
+./analyze_or_test.sh test src/cli.py --framework pytest --output test_cli.py
+
+# Analyze entire project
+./analyze_or_test.sh project ./my-app
+
+# Interactive mode
+./analyze_or_test.sh interactive
+
+# Batch mode
+./analyze_or_test.sh batch src/*.py
+
+# Watch mode
+./analyze_or_test.sh watch src/
+
+# Compare two file versions
+./analyze_or_test.sh compare old_version.py new_version.py
 ```
 
 ### Python API
@@ -237,6 +304,21 @@ Add framework templates:
 ## 🤝 Integration
 
 ### CI/CD Integration
+
+#### Using Shell Script (Recommended)
+```bash
+# In your CI pipeline
+./analyze_or_test.sh project . --quiet > security_report.txt
+if grep -q "CRITICAL\|HIGH" security_report.txt; then
+    echo "Security issues found!"
+    exit 1
+fi
+
+# Batch analyze changed files
+git diff --name-only HEAD~1 | grep -E '\.(py|js|ts|java|go|rs|cs|c|cpp|php|rb|swift|kt)$' | xargs ./analyze_or_test.sh batch
+```
+
+#### Using Direct Python
 ```bash
 # In your CI pipeline
 python src/cli.py project --project . > security_report.txt
@@ -247,6 +329,27 @@ fi
 ```
 
 ### Pre-commit Hook
+
+#### Enhanced Hook with Shell Script
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+# Get list of changed files
+changed_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(py|js|ts|java|go|rs|cs|c|cpp|php|rb|swift|kt)$')
+
+if [ -n "$changed_files" ]; then
+    echo "🔍 Running security analysis on changed files..."
+    ./analyze_or_test.sh batch $changed_files --quiet
+    
+    if [ $? -ne 0 ]; then
+        echo "❌ Security issues found! Please fix before committing."
+        exit 1
+    fi
+fi
+```
+
+#### Simple Hook
 ```bash
 #!/bin/sh
 python src/cli.py analyze --file $1 --security
